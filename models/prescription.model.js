@@ -14,15 +14,19 @@ module.exports = (sequelize) => {
       references: {
         model: 'patients',
         key: 'id'
-      }
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE'
     },
     doctor_id: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'doctors',
+        model: 'users', 
         key: 'id'
-      }
+      },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
     },
     visit_id: {
       type: DataTypes.UUID,
@@ -30,7 +34,19 @@ module.exports = (sequelize) => {
       references: {
         model: 'visits',
         key: 'id'
-      }
+      },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
+    },
+    medical_record_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'medical_records',
+        key: 'id'
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE'
     },
     medication_id: {
       type: DataTypes.UUID,
@@ -38,7 +54,9 @@ module.exports = (sequelize) => {
       references: {
         model: 'medications',
         key: 'id'
-      }
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE'
     },
     dosage: {
       type: DataTypes.STRING(100),
@@ -52,7 +70,7 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(100),
       allowNull: false
     },
-    notes: {
+    instructions: {
       type: DataTypes.TEXT,
       allowNull: true
     },

@@ -15,15 +15,19 @@ module.exports = (sequelize) => {
       references: {
         model: 'patients',
         key: 'id'
-      }
+      },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE'
     },
     doctor_id: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'users', // assuming doctors are in users table
+        model: 'users',
         key: 'id'
-      }
+      },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
     },
     visit_date: {
       type: DataTypes.DATE,
@@ -52,7 +56,7 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    lab_results: {
+    vital_signs: {
       type: DataTypes.JSONB,
       allowNull: true
     },

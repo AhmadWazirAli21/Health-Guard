@@ -11,7 +11,13 @@ module.exports = (sequelize) => {
     },
     hospital_id: {
       type: DataTypes.UUID,
-      allowNull: true
+      allowNull: true,
+      references: {
+        model: 'hospitals',
+        key: 'id'
+      },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
     },
     national_id: {
       type: DataTypes.TEXT,
@@ -19,42 +25,6 @@ module.exports = (sequelize) => {
     },
     full_name: {
       type: DataTypes.TEXT,
-      allowNull: false
-    },
-    gender: {
-      type: DataTypes.ENUM('male', 'female', 'other'),
-      allowNull: false
-    },
-    date_of_birth: {
-      type: DataTypes.DATEONLY,
-      allowNull: false
-    },
-    phone: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    email: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      validate: {
-        isEmail: true
-      }
-    },
-    address: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    emergency_contact_name: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    emergency_contact_phone: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    insurance_provider: {
-      type: DataTypes.TEXT,
-      allowNull: true
     },
     insurance_number: {
       type: DataTypes.TEXT,

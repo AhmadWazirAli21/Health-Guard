@@ -1,38 +1,49 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize) => {
-  const Appointment = sequelize.define('Appointment', {
+  const User = sequelize.define('User', {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
       allowNull: false
     },
-    patient_id: {
-      type: DataTypes.UUID,
-      allowNull: true
+    username: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      unique: true
     },
-    doctor_id: {
-      type: DataTypes.UUID,
-      allowNull: true
+    email: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
     },
-    department_id: {
-      type: DataTypes.UUID,
-      allowNull: true
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      set(value) {
+        this.setDataValue('password', bcrypt.hashSync(value, 10));
+      }
     },
-    scheduled_time: {
-      type: DataTypes.DATE,
-      allowNull: true
-    },
-    status: {
-      type: DataTypes.ENUM('scheduled', 'checked_in', 'completed', 'cancelled', 'no_show'),
-      defaultValue: 'scheduled',
+    first_name: {
+      type: DataTypes.STRING(50),
       allowNull: false
     },
-    visit_reason: {
-      type: DataTypes.TEXT,
+    last_name: {
+      type: DataTypes.STRING(50),
+      allowNull: false
+    },
+    phone: {
+      type: DataTypes.STRING(20),
       allowNull: true
+    },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
     },
     created_at: {
       type: DataTypes.DATE,
@@ -45,47 +56,73 @@ module.exports = (sequelize) => {
       defaultValue: DataTypes.NOW
     }
   }, {
-    tableName: 'appointments',
+    tableName: 'users',
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    underscored: true
+    underscored: true,
+    hooks: {
+      beforeCreate: (user) => {
+        user.password = bcrypt.hashSync(user.password, 10);
+      },
+      beforeUpdate: (user) => {
+        if (user.changed('password')) {
+          user.password = bcrypt.hashSync(user.password, 10);
+        }
+      }
+    }
   });
 
-  // Define associations
-  Appointment.associate = (models) => {
-    // Appointment belongs to a Patient (User)
-    Appointment.belongsTo(models.User, {
-      foreignKey: 'patient_id',
-      as: 'patient',
-      onDelete: 'SET NULL', // or 'CASCADE' based on requirements
-      onUpdate: 'CASCADE'
-    });
-
-    // Appointment belongs to a Doctor (User)
-    Appointment.belongsTo(models.User, {
+  User.associate = (models) => {
+    // User has many appointments (as doctor)
+    User.hasMany(models.Appointment, {
       foreignKey: 'doctor_id',
-      as: 'doctor',
-      onDelete: 'SET NULL', // or 'CASCADE' based on requirements
-      onUpdate: 'CASCADE'
+      as: 'appointments'
     });
-
-    // Appointment belongs to a Department
-    Appointment.belongsTo(models.Department, {
-      foreignKey: 'department_id',
-      as: 'department',
-      onDelete: 'SET NULL', // or 'CASCADE' based on requirements
-      onUpdate: 'CASCADE'
+    
+    // User has many prescriptions (as doctor)
+    User.hasMany(models.Prescription, {
+      foreignKey: 'doctor_id',
+      as: 'prescriptions'
     });
-
-    // Optional: If you have a Visit model and want to link appointments to visits
-    Appointment.hasOne(models.Visit, {
-      foreignKey: 'appointment_id',
-      as: 'visit',
-      onDelete: 'SET NULL', // or 'CASCADE' based on requirements
-      onUpdate: 'CASCADE'
+    
+    // User has many medical records (as doctor)
+    User.hasMany(models.MedicalRecord, {
+      foreignKey: 'doctor_id',
+      as: 'medical_records'
+    });
+    
+    // User has many lab results (as doctor)
+    User.hasMany(models.LabResult, {
+      foreignKey: 'doctor_id',
+      as: 'lab_results'
+    });
+    
+    // User has many visits (as doctor)
+    User.hasMany(models.Visit, {
+      foreignKey: 'doctor_id',
+      as: 'visits'
+    });
+    
+    // User has many transactions
+    User.hasMany(models.Transaction, {
+      foreignKey: 'user_id',
+      as: 'transactions'
+    });
+    
+    // Many-to-many relationship with Role through UserRole
+    User.belongsToMany(models.Role, {
+      through: models.UserRole,
+      foreignKey: 'user_id',
+      otherKey: 'role_id',
+      as: 'roles'
     });
   };
 
-  return Appointment;
+  // Method to compare passwords
+  User.prototype.comparePassword = function(candidatePassword) {
+    return bcrypt.compareSync(candidatePassword, this.password);
+  };
+
+  return User;
 };
